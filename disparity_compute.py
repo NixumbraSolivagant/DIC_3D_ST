@@ -1,29 +1,34 @@
+import sys
+use_superres = False
+if '--superres' in sys.argv:
+    use_superres = True
 import cv2
 import numpy as np
 import glob
 import os
 import matplotlib.pyplot as plt
-import sys
 
-params = np.load('output/calib_params.npz')
+param_dir = 'output_sr' if use_superres else 'output'
+params = np.load(os.path.join(param_dir, 'calib_params.npz'))
 mapLx, mapLy = params['mapLx'], params['mapLy']
 mapRx, mapRy = params['mapRx'], params['mapRy']
 Q = params['Q']
-use_superres = False
-if '--superres' in sys.argv:
-    use_superres = True
+
+def ensure_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
 
 if use_superres:
     left_list = sorted(glob.glob('../capture_SR/Left/*.png'))
     right_list = sorted(glob.glob('../capture_SR/Right/*.png'))
     output_dir = 'output_sr/output_disp'
-    os.makedirs('output_sr', exist_ok=True)
+    ensure_dir('output_sr')
 else:
     left_list = sorted(glob.glob('../capture/Left/*.png'))
     right_list = sorted(glob.glob('../capture/Right/*.png'))
     output_dir = 'output/output_disp'
-    os.makedirs('output', exist_ok=True)
-os.makedirs(output_dir, exist_ok=True)
+    ensure_dir('output')
+ensure_dir(output_dir)
 if hasattr(cv2, 'StereoSGBM_create'):
     stereo = cv2.StereoSGBM_create(
         minDisparity=0,

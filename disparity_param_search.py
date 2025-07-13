@@ -1,10 +1,15 @@
+import sys
+use_superres = False
+if '--superres' in sys.argv:
+    use_superres = True
 import cv2
 import numpy as np
 import glob
 import os
 import matplotlib.pyplot as plt
 
-params = np.load('output/calib_params.npz')
+param_dir = 'output_sr' if use_superres else 'output'
+params = np.load(os.path.join(param_dir, 'calib_params.npz'))
 mapLx, mapLy = params['mapLx'], params['mapLy']
 mapRx, mapRy = params['mapRx'], params['mapRy']
 

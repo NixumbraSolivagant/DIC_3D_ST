@@ -1,6 +1,11 @@
+import sys
+use_superres = False
+if '--superres' in sys.argv:
+    use_superres = True
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 def zncc(template, search):
     template = (template - np.mean(template)) / (np.std(template) + 1e-8)
@@ -67,8 +72,8 @@ def run_dic_grid(ref_img, def_img, grid_step=20, win_size=21, search_radius=5):
     return np.array(pts), np.array(disps)
 
 if __name__ == '__main__':
-    # 加载标定参数，做极线校正remap
-    params = np.load('output/calib_params.npz')
+    param_dir = 'output_sr' if use_superres else 'output'
+    params = np.load(os.path.join(param_dir, 'calib_params.npz'))
     mapLx, mapLy = params['mapLx'], params['mapLy']
     img1_raw = cv2.imread('../capture/Right/R_008.png', 0)
     img2_raw = cv2.imread('../capture/Right/R_009.png', 0)

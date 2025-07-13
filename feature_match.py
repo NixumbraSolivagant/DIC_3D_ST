@@ -9,17 +9,21 @@ use_superres = False  # 切换是否用超分
 if '--superres' in sys.argv:
     use_superres = True
 
+def ensure_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+
 if use_superres:
     left_list = sorted(glob.glob('../capture_SR/Left/*.png'))
     disp_dir = 'output_sr/output_disp'
     output_dir = 'output_sr/output_match'
-    os.makedirs('output_sr', exist_ok=True)
+    ensure_dir('output_sr')
 else:
     left_list = sorted(glob.glob('../capture/Left/*.png'))
     disp_dir = 'output/output_disp'
     output_dir = 'output/output_match'
-    os.makedirs('output', exist_ok=True)
-os.makedirs(output_dir, exist_ok=True)
+    ensure_dir('output')
+ensure_dir(output_dir)
 
 if hasattr(cv2, 'AKAZE_create'):
     detector = cv2.AKAZE_create()

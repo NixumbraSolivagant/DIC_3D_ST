@@ -11,10 +11,17 @@ use_superres = False
 if '--superres' in sys.argv:
     use_superres = True
 
+def ensure_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+
 if use_superres:
     stats_dir = 'output_sr/output_3d'
+    ensure_dir('output_sr')
 else:
     stats_dir = 'output/output_3d'
+    ensure_dir('output')
+ensure_dir(stats_dir)
 
 pattern = re.compile(r'displacement_stats_(\\d+)\\.txt')
 

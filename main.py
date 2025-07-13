@@ -1,5 +1,5 @@
-use_superres = False  # 切换是否用超分
-superres_flag = '--superres' if use_superres else ''
+import sys
+superres_flag = '--superres' if '--superres' in sys.argv else ''
 import os
 os.system(f'python3 stereo_calib.py {superres_flag}')
 os.system(f'python3 disparity_compute.py {superres_flag}')

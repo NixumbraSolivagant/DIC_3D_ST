@@ -1,25 +1,30 @@
+import sys
+use_superres = False
+if '--superres' in sys.argv:
+    use_superres = True
 import cv2
 import numpy as np
 import os
-import sys
 
-params = np.load('output/calib_params.npz')
+param_dir = 'output_sr' if use_superres else 'output'
+params = np.load(os.path.join(param_dir, 'calib_params.npz'))
 Q = params['Q']
-use_superres = False  # 切换是否用超分
-if '--superres' in sys.argv:
-    use_superres = True
+
+def ensure_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
 
 if use_superres:
     disp_dir = 'output_sr/output_disp'
     match_dir = 'output_sr/output_match'
     output_dir = 'output_sr/output_3d'
-    os.makedirs('output_sr', exist_ok=True)
+    ensure_dir('output_sr')
 else:
     disp_dir = 'output/output_disp'
     match_dir = 'output/output_match'
     output_dir = 'output/output_3d'
-    os.makedirs('output', exist_ok=True)
-os.makedirs(output_dir, exist_ok=True)
+    ensure_dir('output')
+ensure_dir(output_dir)
 num_pairs = len([f for f in os.listdir(disp_dir) if f.endswith('.npy')])
 
 def bilinear_interp(img, pt):
@@ -83,16 +88,16 @@ for idx in range(1, num_pairs):
         Q1 = np.percentile(mags_np, 25)
         Q3 = np.percentile(mags_np, 75)
         IQR = Q3 - Q1
-        lower = Q1 - 1 * IQR
-        upper = Q3 + 1 * IQR
+        lower = Q1 - 0.3 * IQR
+        upper = Q3 + 0.3 * IQR
         filtered = [(pt_b, pt_a, disp) for (pt_b, pt_a, disp, mag) in displacements if lower <= mag <= upper]
         # 3σ法进一步剔除
         if filtered:
             mags_f = np.array([np.linalg.norm(disp) for _, _, disp in filtered])
             mean_f = np.mean(mags_f)
             std_f = np.std(mags_f)
-            lower_3sigma = mean_f - 1.5* std_f
-            upper_3sigma = mean_f + 1.5 * std_f
+            lower_3sigma = mean_f - 1 * std_f
+            upper_3sigma = mean_f + 1 * std_f
             filtered = [(pt_b, pt_a, disp) for (pt_b, pt_a, disp) in filtered if lower_3sigma <= np.linalg.norm(disp) <= upper_3sigma]
     else:
         filtered = []
