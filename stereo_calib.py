@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 或 ['Microsoft YaHei']
 plt.rcParams['axes.unicode_minus'] = False
 import os
+import sys
 
 # ========== 1. 相机标定和立体校正 ==========
 CHECKERBOARD = (11, 8)
@@ -17,8 +18,23 @@ objp *= square_size
 objpoints = []
 imgpoints_left = []
 imgpoints_right = []
-images_left = sorted(glob.glob('/home/herzog/DIC/textL18/*.png'))
-images_right = sorted(glob.glob('/home/herzog/DIC/textR18/textL18/*.png'))
+use_superres = False  # 切换是否用超分
+
+if '--superres' in sys.argv:
+    use_superres = True
+
+if use_superres:
+    images_left = sorted(glob.glob('../textL18_SR/*.png'))
+    images_right = sorted(glob.glob('../textR18/textL18_SR/*.png'))
+    output_dir = 'output_sr/calib_output'
+    os.makedirs('output_sr', exist_ok=True)
+else:
+    images_left = sorted(glob.glob('../textL18/*.png'))
+    images_right = sorted(glob.glob('../textR18/textL18/*.png'))
+    output_dir = 'output/calib_output'
+    os.makedirs('output', exist_ok=True)
+# 交换左右图像顺序，确保Q矩阵和视差方向一致
+images_left, images_right = images_right, images_left
 for fname_left, fname_right in zip(images_left, images_right):
     imgL = cv2.imread(fname_left)
     imgR = cv2.imread(fname_right)
@@ -46,8 +62,8 @@ mapLx, mapLy = cv2.initUndistortRectifyMap(mtxL, distL, R1, P1, grayL.shape[::-1
 mapRx, mapRy = cv2.initUndistortRectifyMap(mtxR, distR, R2, P2, grayR.shape[::-1], cv2.CV_32FC1)
 print("相机标定与立体校正完成。")
 # ====== 标定参数保存 ======
-np.savez('calib_params.npz', mtxL=mtxL, distL=distL, mtxR=mtxR, distR=distR, R=R, T=T, Q=Q, mapLx=mapLx, mapLy=mapLy, mapRx=mapRx, mapRy=mapRy, roi1=roi1, roi2=roi2)
-with open('calib_params.txt', 'w') as f:
+np.savez('output/calib_params.npz', mtxL=mtxL, distL=distL, mtxR=mtxR, distR=distR, R=R, T=T, Q=Q, mapLx=mapLx, mapLy=mapLy, mapRx=mapRx, mapRy=mapRy, roi1=roi1, roi2=roi2)
+with open('output/calib_params.txt', 'w') as f:
     def p(s):
         print(s)
         f.write(s+'\n')
@@ -62,8 +78,6 @@ with open('calib_params.txt', 'w') as f:
     p(f'roi1: {roi1}, roi2: {roi2}')
     p('===========================')
 # ====== 标定结果图片保存 ======
-output_dir = 'calib_output'
-os.makedirs(output_dir, exist_ok=True)
 if len(images_left) > 0 and len(images_right) > 0:
     imgL = cv2.imread(images_left[0])
     imgR = cv2.imread(images_right[0])

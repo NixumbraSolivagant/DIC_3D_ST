@@ -1,0 +1,1 @@
+python main.py --model EDSR --scale 2 --patch_size 96 --save edsr_baseline_x2 --reset --n_colors 1

@@ -3,22 +3,34 @@ import numpy as np
 import glob
 import os
 import matplotlib.pyplot as plt
+import sys
 
-params = np.load('calib_params.npz')
+params = np.load('output/calib_params.npz')
 mapLx, mapLy = params['mapLx'], params['mapLy']
 mapRx, mapRy = params['mapRx'], params['mapRy']
 Q = params['Q']
-left_list = sorted(glob.glob('capture/Left/*.png'))
-right_list = sorted(glob.glob('capture/Right/*.png'))
-output_dir = 'output_disp'
+use_superres = False
+if '--superres' in sys.argv:
+    use_superres = True
+
+if use_superres:
+    left_list = sorted(glob.glob('../capture_SR/Left/*.png'))
+    right_list = sorted(glob.glob('../capture_SR/Right/*.png'))
+    output_dir = 'output_sr/output_disp'
+    os.makedirs('output_sr', exist_ok=True)
+else:
+    left_list = sorted(glob.glob('../capture/Left/*.png'))
+    right_list = sorted(glob.glob('../capture/Right/*.png'))
+    output_dir = 'output/output_disp'
+    os.makedirs('output', exist_ok=True)
 os.makedirs(output_dir, exist_ok=True)
 if hasattr(cv2, 'StereoSGBM_create'):
     stereo = cv2.StereoSGBM_create(
         minDisparity=0,
-        numDisparities=128,
-        blockSize=11,
-        P1=8*3*11**2,
-        P2=32*3*11**2,
+        numDisparities=64,
+        blockSize=9,
+        P1=8*3*9**2,
+        P2=32*3*9**2,
         disp12MaxDiff=1,
         uniquenessRatio=15,
         speckleWindowSize=100,
@@ -34,7 +46,10 @@ for idx, (lf, rf) in enumerate(zip(left_list, right_list)):
     rectR = cv2.remap(imgR, mapRx, mapRy, cv2.INTER_LINEAR)
     grayL = cv2.cvtColor(rectL, cv2.COLOR_BGR2GRAY)
     grayR = cv2.cvtColor(rectR, cv2.COLOR_BGR2GRAY)
+    grayL = cv2.GaussianBlur(grayL, (5,5), 0)
+    grayR = cv2.GaussianBlur(grayR, (5,5), 0)
     disp = stereo.compute(grayL, grayR).astype(np.float32) / 16
+    disp = cv2.medianBlur(disp, 5)
     disp = np.clip(disp, 0, 128)
     np.save(os.path.join(output_dir, f'disp_{idx+1}.npy'), disp)
     plt.figure(figsize=(6,4))
@@ -45,4 +60,14 @@ for idx, (lf, rf) in enumerate(zip(left_list, right_list)):
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f'disp_{idx+1}.png'))
     plt.close()
+    plt.figure()
+    plt.hist(disp.ravel(), bins=50, range=(0, 128))
+    plt.title(f'disp_{idx+1} histogram')
+    plt.xlabel('Disparity')
+    plt.ylabel('Pixel count')
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'disp_{idx+1}_hist.png'))
+    plt.close()
+    valid = np.logical_and(disp > 1, disp < 120)
+    print(f'disp_{idx+1}: 有效视差像素比例 {np.sum(valid)/valid.size:.4f}')
 print('所有视差图已保存到 output_disp/') 
