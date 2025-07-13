@@ -1,0 +1,48 @@
+import cv2
+import numpy as np
+import glob
+import os
+import matplotlib.pyplot as plt
+
+params = np.load('calib_params.npz')
+mapLx, mapLy = params['mapLx'], params['mapLy']
+mapRx, mapRy = params['mapRx'], params['mapRy']
+Q = params['Q']
+left_list = sorted(glob.glob('capture/Left/*.png'))
+right_list = sorted(glob.glob('capture/Right/*.png'))
+output_dir = 'output_disp'
+os.makedirs(output_dir, exist_ok=True)
+if hasattr(cv2, 'StereoSGBM_create'):
+    stereo = cv2.StereoSGBM_create(
+        minDisparity=0,
+        numDisparities=128,
+        blockSize=11,
+        P1=8*3*11**2,
+        P2=32*3*11**2,
+        disp12MaxDiff=1,
+        uniquenessRatio=15,
+        speckleWindowSize=100,
+        speckleRange=16
+    )
+else:
+    print('警告：未检测到StereoSGBM，自动降级为StereoBM，建议安装opencv-contrib-python以获得更好视差效果。')
+    stereo = cv2.StereoBM_create(numDisparities=128, blockSize=11)
+for idx, (lf, rf) in enumerate(zip(left_list, right_list)):
+    imgL = cv2.imread(lf)
+    imgR = cv2.imread(rf)
+    rectL = cv2.remap(imgL, mapLx, mapLy, cv2.INTER_LINEAR)
+    rectR = cv2.remap(imgR, mapRx, mapRy, cv2.INTER_LINEAR)
+    grayL = cv2.cvtColor(rectL, cv2.COLOR_BGR2GRAY)
+    grayR = cv2.cvtColor(rectR, cv2.COLOR_BGR2GRAY)
+    disp = stereo.compute(grayL, grayR).astype(np.float32) / 16
+    disp = np.clip(disp, 0, 128)
+    np.save(os.path.join(output_dir, f'disp_{idx+1}.npy'), disp)
+    plt.figure(figsize=(6,4))
+    plt.imshow(disp, cmap='jet')
+    plt.colorbar()
+    plt.title(f'disp_{idx+1}')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'disp_{idx+1}.png'))
+    plt.close()
+print('所有视差图已保存到 output_disp/') 
