@@ -100,7 +100,57 @@ python3 main.py --superres
 - **reproject_3d.py**
   - 修改 `disp_dir`、`match_dir`、`output_dir` 变量。
 
-如有疑问，可直接搜索变量名或查阅脚本开头的路径设置部分。
+---
+
+## 2D DIC 位移分析自动化流程
+
+### 目录结构（2D部分）
+- `main.py`：2D主流程入口，自动串联标定、校正、视差计算、位移分析、可视化等步骤
+- `optimize.py`：自动参数调优脚本，根据理论物理位移自动搜索最优视差参数
+- `config.py`：集中管理所有参数，包括数据路径、标定参数、视差参数、理论位移等
+- `DIC_2D/`：2D功能模块目录
+  - `calibration/`：标定与立体校正
+  - `disparity/`：视差计算（SGBM/ZNCC）
+  - `analysis/`：位移分析与可视化
+
+### 依赖环境
+同上，需安装 `opencv-python`、`numpy`、`matplotlib`、`scipy` 等。
+
+### 2D流程一键运行
+```bash
+python3 main.py
+```
+- 自动完成标定、校正、视差计算、位移分析、结果可视化。
+- 所有参数自动读取 `config.py`，无需命令行交互。
+
+### 2D参数自动调优
+- 支持自动遍历 SGBM 参数（如 blockSize、numDisparities），以**物理位移结果最接近理论值**为目标自动调优。
+- 理论位移值可在 `config.py` 中设置：
+  ```python
+  THEORETICAL_DISPLACEMENT_MM = 1.0  # 单位mm
+  ```
+- 若未找到最优参数文件，`main.py` 会自动调用 `optimize.py` 完成调优，结果保存在 `output2D/optimize/optimal_params.json`。
+
+### 主要输出
+- `output2D/calibration/`：标定参数与校正结果
+- `output2D/disparity/`：视差图
+- `output2D/analysis/`：位移统计、物理位移（mm）、像素位移等
+- `output2D/visualization/`：位移曲线、直方图等可视化结果
+- `output2D/optimize/optimal_params.json`：自动调优得到的最优参数及误差
+
+### 主要参数说明（config.py）
+- 数据路径：`LEFT_DIR`, `RIGHT_DIR`, `CALIB_LEFT_DIR`, `CALIB_RIGHT_DIR`
+- 棋盘格参数：`CHECKERBOARD`, `SQUARE_SIZE`
+- 视差方法与参数：`DISPARITY_METHOD`, `SGBM_PARAMS`, `ZNCC_PARAMS`
+- 有效视差区间：`DISP_VALID_LOW`, `DISP_VALID_HIGH`
+- 异常值剔除：`OUTLIER_METHOD`, `OUTLIER_THRESHOLD`
+- **理论物理位移**：`THEORETICAL_DISPLACEMENT_MM`（自动调优目标）
+
+### 典型流程
+1. 配置好 `config.py` 路径和参数，设置理论位移值。
+2. 运行 `python3 main.py`，系统自动完成所有步骤。
+3. 查看 `output2D/` 下的各类结果和最优参数。
 
 ---
+
 如有问题请联系开发者或查阅代码注释。 
