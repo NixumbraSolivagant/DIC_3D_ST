@@ -48,8 +48,8 @@ def superres_batch(lr_folder, sr_folder):
 
 # === 2. 批量处理左相机标定板图片 ===
 print('Processing left camera calibration images...')
-superres_batch('../textL18', '../textL18_SR')
+superres_batch('/home/herzog/DIC/text/Left', '/home/herzog/DIC/text/Left_SR')
 
 # === 3. 批量处理右相机标定板图片 ===
 print('Processing right camera calibration images...')
-superres_batch('../textR18/textL18', '../textR18/textL18_SR') 
+superres_batch('/home/herzog/DIC/text/Right', '/home/herzog/DIC/text/Right_SR') 

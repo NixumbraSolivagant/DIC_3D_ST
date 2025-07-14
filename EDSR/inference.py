@@ -32,28 +32,28 @@ device = torch.device('cuda' if torch.cuda.is_available() and not args.cpu else 
 model = model.to(device)
 
 def superres_batch(lr_folder, sr_folder):
-os.makedirs(sr_folder, exist_ok=True)
-for fname in os.listdir(lr_folder):
-    if fname.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tif')):
-        lr_path = os.path.join(lr_folder, fname)
-        sr_path = os.path.join(sr_folder, 'SR_' + fname)
-        img = Image.open(lr_path).convert('L')
-        img = np.array(img).astype(np.float32)
-        img = torch.from_numpy(img).unsqueeze(0).unsqueeze(0)
-        if args.precision == 'half':
-            img = img.half()
-        img = img.to(device)
-        with torch.no_grad():
-            sr = model(img)
-            sr = src.utility.quantize(sr, args.rgb_range)
-        sr_img = sr.squeeze().cpu().numpy().astype(np.uint8)
-        Image.fromarray(sr_img, mode='L').save(sr_path)
-        print(f'Saved: {sr_path}')
+	os.makedirs(sr_folder, exist_ok=True)
+	for fname in os.listdir(lr_folder):
+		if fname.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tif')):
+		    lr_path = os.path.join(lr_folder, fname)
+		    sr_path = os.path.join(sr_folder, 'SR_' + fname)
+		    img = Image.open(lr_path).convert('L')
+		    img = np.array(img).astype(np.float32)
+		    img = torch.from_numpy(img).unsqueeze(0).unsqueeze(0)
+		    if args.precision == 'half':
+		        img = img.half()
+		    img = img.to(device)
+		    with torch.no_grad():
+		        sr = model(img)
+		        sr = src.utility.quantize(sr, args.rgb_range)
+		    sr_img = sr.squeeze().cpu().numpy().astype(np.uint8)
+		    Image.fromarray(sr_img, mode='L').save(sr_path)
+		    print(f'Saved: {sr_path}')
 
 # === 4. 批量处理左右相机 ===
 folders = [
-    ('/home/herzog/DIC/capture/Left', '/home/herzog/DIC/capture_SR/Left'),
-    ('/home/herzog/DIC/capture/Right', '/home/herzog/DIC/capture_SR/Right')
+    ('/home/herzog/DIC/capture1/Left', '/home/herzog/DIC/capture1_SR/Left'),
+    ('/home/herzog/DIC/capture1/Right', '/home/herzog/DIC/capture1_SR/Right')
 ]
 for lr_folder, sr_folder in folders:
     print(f'Processing {lr_folder} ...')
