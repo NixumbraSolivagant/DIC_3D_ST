@@ -4,6 +4,8 @@ import os
 import matplotlib.pyplot as plt
 import glob
 import config
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def run_rectification(calib_data, cfg):
     output_dir = cfg.CALIB_OUTPUT

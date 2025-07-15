@@ -4,6 +4,8 @@ import glob
 import os
 import matplotlib.pyplot as plt
 import config
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def run_calibration(cfg):
     CHECKERBOARD = cfg.CHECKERBOARD

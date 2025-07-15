@@ -53,6 +53,8 @@ def compute_disparity(rectify_data, cfg):
                     if x-half-d < 0:
                         continue
                     patch2 = grayR[y-half:y+half+1, x-half-d:x+half+1-d]
+                    if patch2.shape != patch1.shape:
+                        continue
                     score = zncc_score(patch1, patch2)
                     if score > best_score:
                         best_score = score
@@ -89,6 +91,8 @@ def compute_disparity(rectify_data, cfg):
                     if x-half-d < 0:
                         continue
                     patch2 = rectR[y-half:y+half+1, x-half-d:x+half+1-d]
+                    if patch2.shape != patch1.shape:
+                        continue
                     score = zncc_score(patch1, patch2)
                     if score > best_score:
                         best_score = score
