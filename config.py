@@ -4,8 +4,8 @@ import os
 DATA_ROOT = '../capture0.1'
 LEFT_DIR = os.path.join(DATA_ROOT, 'Left')
 RIGHT_DIR = os.path.join(DATA_ROOT, 'Right')
-CALIB_LEFT_DIR = '../text0.1/Left'
-CALIB_RIGHT_DIR = '../text0.1/Right'
+CALIB_LEFT_DIR = '../text0.1/Right'
+CALIB_RIGHT_DIR = '../text0.1/Left'
 
 # 输出目录
 OUTPUT_ROOT = 'output2D_0.1'

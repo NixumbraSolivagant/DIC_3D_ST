@@ -61,7 +61,7 @@ def main():
                                 disparity_maps = zncc.compute_disparity(rectify_data, config)
                                 disp = disparity_maps[0]
                                 results = displacement.analyze([disp], config)
-                                mean_disp_mm = results[0]['std']
+                                mean_disp_mm = results[0]['mean']
                                 error = abs(mean_disp_mm - theoretical_disp)
                                 mean_errors.append(error)
                             except Exception as e:
@@ -123,7 +123,7 @@ def main():
                                     disparity_maps = sgbm.compute_disparity(rectify_data, config)
                                     disp = disparity_maps[0]
                                     results = displacement.analyze([disp], config)
-                                    mean_disp_mm = results[0]['std']
+                                    mean_disp_mm = results[0]['mean']
                                     error = abs(mean_disp_mm - theoretical_disp)
                                     mean_errors.append(error)
                                 except Exception as e:
